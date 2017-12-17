@@ -13,20 +13,36 @@ require_once 'includes/fonctions.inc.php';
   $nbArticles = isset($_GET['nbArticles']) ? intval($_GET['nbArticles']) : 3;
   $index = pagination($pageCourante, $nbArticles);
   $search = isset($_GET['search']) ? $_GET['search'] : '';
+  $action = isset($_GET['action']) ? $_GET['action'] : '';
+  $id = isset($_GET['id']) ? $_GET['id'] : '';
 
-  if(isset($_POST['submit'])){
-    $id = implode($_POST['id']);
+//test si on exécute une requête de suppression depuis le bouton supprimer qui redirige vers cette page avec un paramètre $_GET['action'] = delete
+  if($action == 'delete'){
 
-    /*$delete = "DELETE FROM articles
-              WHERE id = :id";*/
+//définition de la requête
+    $delete = "DELETE FROM articles "
+            . "WHERE id = :id";
 
-    echo $id;
-    exit();
-
+//sécurisation des variables et exécution
     $sth = $bdd->prepare($delete);
     $sth->bindValue(':id', $id, PDO::PARAM_INT);
+    $sth->execute();
 
+//redirection vers la page d'acceuil
+    header('Location:index.php');
+  }
+  
+//récupération de l'id qui a été transmit par la méthode post et qui nécessite la commande implode ou définition en variable vide pour éviter les messages d'erreur
+  if(isset($_POST['id'])){
+    $id= implode($_POST['id']);
+  } else {
+    $id='';
+  }
+
+//test si le formulaire a été soumit
+  if(isset($_POST['submit'])){
                       
+//exécution et redirection
     if($sth->execute() == TRUE){      
       header('Location: index.php');
     }
@@ -54,9 +70,10 @@ if (isset($_GET['search'])){
 }
   $nbPages = ceil($totalArticles / $nbArticles);
 
+//test si le formulaire est un formulaire de recherche
 if (isset($_GET['search'])){
 
-
+//commande sql de recherche filtrée et triée
   $sql = "SELECT id, "
       . "titre, "
       . "texte, "
@@ -67,6 +84,7 @@ if (isset($_GET['search'])){
       . "ORDER BY date DESC "
       . "LIMIT :index, :nbArticles";
 
+//sécurisation de la requête
   $sth = $bdd->prepare($sql);
   $sth->bindValue(':search', '%' . $search . '%', PDO::PARAM_STR);
   $sth->bindValue(':index', $index, PDO::PARAM_INT);
@@ -77,10 +95,7 @@ if (isset($_GET['search'])){
 //exécution de la requête
   if ($sth->execute() == TRUE ){
     $tab_articles = $sth->fetchAll(PDO::FETCH_ASSOC);
-  
-//commande pour afficher un tableau
-  //print_r($tab_articles);
-
+ 
 //sinon il y a une erreur
   } else {
 
@@ -88,6 +103,7 @@ if (isset($_GET['search'])){
 
   }
 
+//si il n'y a pas de recherche on récupère les articles sans filtre hormis la publication et limitation pour pagination
 } else {
 
 //récupération des lignes de la bdd
@@ -110,9 +126,6 @@ if (isset($_GET['search'])){
 //exécution de la requête
   if ($sth->execute() == TRUE ){
     $tab_articles = $sth->fetchAll(PDO::FETCH_ASSOC);
-  
-//commande pour afficher un tableau
-  //print_r($tab_articles);
 
 //sinon il y a une erreur
   } else {
@@ -126,6 +139,7 @@ if (isset($_GET['search'])){
 //inclusion du header commun à toutes les pages
 include 'includes/header.inc.php';
 
+//test de notification et affichage dynamique
 if(isset($_SESSION['notification'])){
             $alert = $_SESSION['notification_alert'] == TRUE ? 'alert-success' : 'alert-danger';
           ?>
@@ -142,9 +156,10 @@ if(isset($_SESSION['notification'])){
           }
 ?>
 
+<!-- récupération de la valeur nbArticles pour la pagination et le passage de cette valeur de page en page -->
 <input type="hidden" name="nbArticles[]" value="<?= $nbArticles ?>">
 
-<!-- page web -->
+<!-- base de la page -->
 <div class="container">
   <div class="row">
     <div class="col-lg-12 text-center">
@@ -159,23 +174,6 @@ if(isset($_SESSION['notification'])){
   <form class="form-inline col-12">
       <input class="form-control mr-2 col-sm-6 col-md-6 col-lg-6 col-xl-6" type="search" placeholder="Rechercher..." aria-label="Search" name="search" id="search">
       <button class="btn btn-info my-2 my-sm-0" type="submit">Rechercher</button>
-      <text class="text-white ml-1">Articles par pages:</class="">
-      <div class="btn-group ml-1">
-        <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          <?= $nbArticles ?>
-        </button>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="?page=<?= $pageCourante ?><?= $searchPage ?>&nbArticles=3">3</a>
-          <a class="dropdown-item" href="?page=<?= $pageCourante ?><?= $searchPage ?>&nbArticles=5">5</a>
-          <a class="dropdown-item" href="?page=<?= $pageCourante ?><?= $searchPage ?>&nbArticles=10">10</a>
-          <a class="dropdown-item" href="?page=<?= $pageCourante ?><?= $searchPage ?>&nbArticles=15">15</a>
-          <a class="dropdown-item" href="?page=<?= $pageCourante ?><?= $searchPage ?>&nbArticles=20">20</a>
-          <a class="dropdown-item" href="?page=<?= $pageCourante ?><?= $searchPage ?>&nbArticles=25">25</a>
-          <a class="dropdown-item" href="?page=<?= $pageCourante ?><?= $searchPage ?>&nbArticles=30">30</a>
-          <a class="dropdown-item" href="?page=<?= $pageCourante ?><?= $searchPage ?>&nbArticles=40">40</a>
-          <a class="dropdown-item" href="?page=<?= $pageCourante ?><?= $searchPage ?>&nbArticles=50">50</a>
-        </div>
-      </div>
     </form>
   </nav>
       
@@ -186,7 +184,7 @@ if(isset($_SESSION['notification'])){
     ?> 
         <div class="card-block col-sm-12 col-md-12 col-lg-6 col-xl-6 mt-4 faded">
           <h4 class="card-header text-left">
-            <?php 
+            <?php
               echo $value['titre'];
             ?>
           </h4>
@@ -203,35 +201,17 @@ if(isset($_SESSION['notification'])){
               echo 'Créé le : ' . $value['date_fr'];
             ?>
           </h6>
+
+<!-- bouton qui redirige vers la page de consultation de l'article en question -->
+          <a href="articles.php?action=consulter&id_article=<?= $value['id'] ?>" class="btn btn-secondary bot-buffer">Consulter l'article</a>
+
+<!-- si le visiteur est logué il peut accèder aux boutons de modification et de suppression -->
           <?php
             if ($is_connect == TRUE){
+
           ?>  
           <a href="articles.php?action=modifier&id_article=<?= $value['id'] ?>" class="btn btn-primary bot-buffer">Modifier l'article</a>
-          <a class="btn btn-danger bot-buffer" data-toggle="modal" data-target="#popupDelete">Supprimer l'article</a>
-
-          <div class="modal fade" id="popupDelete" tabindex="-1" role="dialog" aria-labelledby="popupDelete" aria-hidden="true">
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" id="popupDeleteTitre">Attention !</h5>
-                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                  </button>
-                </div>
-                <div class="modal-body">
-                  Cette action est irréversible, êtes-vous sûr de bien vouloir supprimer cet article ?
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-primary" data-dismiss="modal">Annuler</button>
-                  <form action="index.php" method="post" enctype="multipart/form-data" id="delete_article">
-                    <input type="hidden" name=id[] value="<?= $id ?>">
-                    <button type="submit" class="btn btn-danger" name="submit">Supprimer</button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          <a href="index.php?action=delete&id=<?= $value['id'] ?>" class="btn btn-danger bot-buffer" onclick="return confirm('Attention cette action est irreversible ! Etes-vous sûr de vouloir supprimer cet article ?');">Supprimer l'article</a>
           <?php
             }
           ?>

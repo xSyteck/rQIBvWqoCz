@@ -7,6 +7,10 @@ require_once 'config/init.conf.php';
 require_once 'config/bdd.conf.php';
 require_once 'config/connexion.inc.php';
 require_once 'includes/fonctions.inc.php';
+require_once 'libs/Smarty.class.php';
+
+//déclaration d'un fuseau horaire pour éviter un message d'erreur
+date_default_timezone_set('Europe/Paris');
 
 //commandes php lorsque le bouton a été déclenché
 if (isset($_POST['submit'])) {
@@ -98,73 +102,28 @@ if (isset($_POST['submit'])) {
 
   } else {
 
-//inclusion du header
-	include 'includes/header.inc.php';
-
-?>
-    <!-- page web -->
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-12 text-center">
-          <h1 class="mt-5">Connexion</h1>
-          <p class="lead">Veuillez renseigner votre e-mail et votre mot de passe pour pouvoir vous connecter</p>
-          <ul class="list-unstyled">
-            <li class="nav-item">
-            Vous n'avez pas encore de compte ? Cliquez <a class="text-dark" href="inscriptions.php">ici</a>.
-            </li>
-          </ul>
-        </div>
-      </div>
-
-<!-- code php pour les notification selon les valeurs de $notification et $notification_alert -->
-	<?php
+//code php pour les notification selon les valeurs de $notification et $notification_alert 
+$alert= '';
+        
         if(isset($_SESSION['notification'])){
             $alert = $_SESSION['notification_alert'] == TRUE ? 'alert-success' : 'alert-danger';
-    ?>
 
-      		<div class="alert <?= $alert ?> alert-dismissible fade show" role="alert">
-        	<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span>
-        	</button>
-            <?= $_SESSION['notification']; ?>
-      </div>
-
-        <?php
             unset($_SESSION['notification']);
             unset($_SESSION['notification_alert']);
-          }
-    	?>
+          }        
+  }
+//définition des paramètres de Smarty
+$smarty = new Smarty();
 
-<!--  formulaire de connexion -->
-    <form action="connexion.php" method="post" enctype="multipart/form-data" id="form_article">
-        <div class="form-group">
-        	<label for="email">Email</label>
-            <input type="email" class="col-sm-12 col-md-8 col-lg-6 col-xl-6 justify-content-center form-control" id="email" placeholder="Email" name="email" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Mot de passe</label>
-            <input type="password" class="col-sm-12 col-md-8 col-lg-6 col-xl-6 justify-content-center form-control" id="password" placeholder="Mot de passe" name="password" required>
-        </div>
+$smarty->setTemplateDir('templates/');
 
-    	<button type="submit" class="btn btn-primary" name="submit">Valider</button>
-      </form>
+$smarty->setCompileDir('templates_c/');
 
-    </div>
+$smarty->assign('tab_session', $_SESSION);
+$smarty->assign('alert', $alert);
 
-<!-- script nécessaire à la page -->
-    <script src="vendor/jquery/jquery.min.js"></script>
-    <script src="vendor/popper/popper.min.js"></script>
-    <script src="vendor/bootstrap/js/bootstrap.min.js"></script>
-    <script src="js/dist/jquery.validate.min.js"></script>
-    <script src="js/dist/localization/messages_fr.min.js"></script>
-
-    <script >
-      $(document).ready(function () {
-        $("#form_article").validate();
-      })
-    </script>
-
-<!-- inclusion du footer -->
-<?php
+//inclusion du header et du footer
+include 'includes/header.inc.php';
+$smarty->display('connexion.tpl');
 include 'includes/footer.inc.php';
-}
 ?>

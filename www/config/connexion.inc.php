@@ -13,7 +13,8 @@ if (isset ($_COOKIE['sid']) AND !empty ($_COOKIE['sid'])) {
 //on compte le nombre d'utilisateur qui ont pour sid le même que celui contenu dans le cookie
 	$cookie_compare = "SELECT COUNT(sid) AS nb_sid, "
 					. "nom, "
-					. "prenom "
+					. "prenom, "
+					. "id "
 					. "FROM utilisateurs "
 					. "WHERE sid = :cookie_sid";
 
@@ -34,6 +35,7 @@ if (isset ($_COOKIE['sid']) AND !empty ($_COOKIE['sid'])) {
 			$is_connect = TRUE;
 			$nom_connect = $cookie_tab['nom'];
 			$prenom_connect = $cookie_tab['prenom'];
+			$idUser = $cookie_tab['id'];
 
 		}
 	}

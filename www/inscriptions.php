@@ -30,10 +30,12 @@ $insert = "INSERT INTO utilisateurs (nom, prenom, email, password) "
 //mise en mémoire de l'id du dernier article posté
       $id_article = $bdd->lastInsertId();
 
+//mise en session des arguements de notification
       $_SESSION['notification'] = "Votre compte a bien été ajouté !";
       $_SESSION['notification_alert'] = TRUE;
 
-      header('Location: inscriptions.php');
+//et redirection
+      header('Location: index.php');
 
     } else {
 
@@ -50,7 +52,7 @@ $insert = "INSERT INTO utilisateurs (nom, prenom, email, password) "
 include 'includes/header.inc.php';
 
 ?>
-    <!-- page web -->
+    <!-- base de la page -->
     <div class="container">
       <div class="row">
         <div class="col-lg-12 text-center">
@@ -79,7 +81,7 @@ include 'includes/header.inc.php';
           include 'includes/header.inc.php';
           ?>
 
-<!-- mise en place du formulaire -->
+<!-- mise en place du formulaire qui nécessite un nom, prénom, une adresse email, un mot de passe et de valider son inscription via une checkbox -->
       <form action="inscriptions.php" method="post" enctype="multipart/form-data" id="form_article">
         <div class="form-group">
           <div>

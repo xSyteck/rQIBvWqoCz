@@ -52,3 +52,16 @@ function sqlPagination($bdd, $search){
 
 	return $tab_result['total'];
 }
+
+function delete($id){
+
+	echo "<script>alert('Attention cette action est irréversible')</script>";
+
+	$delete = "DELETE FROM articles"
+				. "WHERE id = :id";
+
+	$sth = $bdd->prepare($delete);
+	$sth->bindValue(':id', $id, PDO::PARAM_INT);
+	$sth-execute();
+
+}
